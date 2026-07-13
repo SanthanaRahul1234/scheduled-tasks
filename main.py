@@ -1,38 +1,66 @@
-# To run and test the code you need to update 4 places:
-# 1. Change MY_EMAIL/MY_PASSWORD to your own details.
-# 2. Go to your email provider and make it allow less secure apps.
-# 3. Update the SMTP ADDRESS to match your email provider.
-# 4. Update birthdays.csv to contain today's month and day.
-# See the solution video in the 100 Days of Python Course for explainations.
-
-
-from datetime import datetime
-import pandas
-import random
-import smtplib
+import requests
 import os
 
-# import os and use it to get the Github repository secrets
-MY_EMAIL = os.environ.get("MY_EMAIL")
-MY_PASSWORD = os.environ.get("MY_PASSWORD")
+api_key = os.environ.get('OWM_API_KEY') #using environment variables to hide API Keys
+print(f"DEBUG: My API key is: {os.environ.get('OWM_API_KEY')}")
+OWM_ENDPOINT = "https://api.openweathermap.org/data/2.5/forecast"
 
-today = datetime.now()
-today_tuple = (today.month, today.day)
+location_rugby = { 'loc': 'rugby', 'lat': 52.373199,'lon': -1.261740} #sunny right now
+location_china = { 'loc': 'china','lat': 32.060255,'lon': 118.796877} #cloudy right n0w
+location_ukraine = {'loc': 'ukraine','lat':51.4982,'lon':31.28935} #rainy right now
 
-data = pandas.read_csv("birthdays.csv")
-birthdays_dict = {(data_row["month"], data_row["day"])                  : data_row for (index, data_row) in data.iterrows()}
-if today_tuple in birthdays_dict:
-    birthday_person = birthdays_dict[today_tuple]
-    file_path = f"letter_templates/letter_{random.randint(1, 3)}.txt"
-    with open(file_path) as letter_file:
-        contents = letter_file.read()
-        contents = contents.replace("[NAME]", birthday_person["name"])
+parameters = {
+    'lat': 32.060255,
+    'lon': 118.796877,
+    'cnt': 4,
+    'appid':api_key,
 
-    with smtplib.SMTP("YOUR EMAIL PROVIDER SMTP SERVER ADDRESS") as connection:
-        connection.starttls()
-        connection.login(MY_EMAIL, MY_PASSWORD)
-        connection.sendmail(
-            from_addr=MY_EMAIL,
-            to_addrs=birthday_person["email"],
-            msg=f"Subject:Happy Birthday!\n\n{contents}"
-        )
+}
+
+WillRain = False
+
+message = ''
+
+#make request to api using requesst module, 5 day weather forecast
+response = requests.get(OWM_ENDPOINT, params=parameters)
+response.raise_for_status()
+weather_data = response.json()
+print(weather_data) #trying not to go over limit
+
+#weather_data = {'cod': '200', 'message': 0, 'cnt': 4, 'list': [{'dt': 1783954800, 'main': {'temp': 299.27, 'feels_like': 299.27, 'temp_min': 298.21, 'temp_max': 299.27, 'pressure': 1022, 'sea_level': 1022, 'grnd_level': 1008, 'humidity': 51, 'temp_kf': 1.06, 'dew_point': 288.35}, 'weather': [{'id': 800, 'main': 'Clear', 'description': 'clear sky', 'icon': '01d'}], 'clouds': {'all': 0}, 'wind': {'speed': 8.36, 'deg': 66, 'gust': 9.11}, 'visibility': 10000, 'pop': 0, 'sys': {'pod': 'd'}, 'dt_txt': '2026-07-13 15:00:00'}, {'dt': 1783965600, 'main': {'temp': 298.31, 'feels_like': 298.24, 'temp_min': 296.39, 'temp_max': 298.31, 'pressure': 1022, 'sea_level': 1022, 'grnd_level': 1008, 'humidity': 52, 'temp_kf': 1.92, 'dew_point': 287.77}, 'weather': [{'id': 800, 'main': 'Clear', 'description': 'clear sky', 'icon': '01d'}], 'clouds': {'all': 0}, 'wind': {'speed': 7.84, 'deg': 64, 'gust': 9.7}, 'visibility': 10000, 'pop': 0, 'sys': {'pod': 'd'}, 'dt_txt': '2026-07-13 18:00:00'}, {'dt': 1783976400, 'main': {'temp': 293.6, 'feels_like': 293.48, 'temp_min': 290.76, 'temp_max': 293.6, 'pressure': 1023, 'sea_level': 1023, 'grnd_level': 1009, 'humidity': 68, 'temp_kf': 2.84, 'dew_point': 287.5}, 'weather': [{'id': 800, 'main': 'Clear', 'description': 'clear sky', 'icon': '01n'}], 'clouds': {'all': 0}, 'wind': {'speed': 5.52, 'deg': 45, 'gust': 12.3}, 'visibility': 10000, 'pop': 0, 'sys': {'pod': 'n'}, 'dt_txt': '2026-07-13 21:00:00'}, {'dt': 1783987200, 'main': {'temp': 287.93, 'feels_like': 287.94, 'temp_min': 287.93, 'temp_max': 287.93, 'pressure': 1023, 'sea_level': 1023, 'grnd_level': 1009, 'humidity': 95, 'temp_kf': 0, 'dew_point': 284.63}, 'weather': [{'id': 800, 'main': 'Clear', 'description': 'clear sky', 'icon': '01n'}], 'clouds': {'all': 0}, 'wind': {'speed': 5.44, 'deg': 31, 'gust': 13.16}, 'visibility': 10000, 'pop': 0, 'sys': {'pod': 'n'}, 'dt_txt': '2026-07-14 00:00:00'}], 'city': {'id': 2638978, 'name': 'Rugby', 'coord': {'lat': 52.3732, 'lon': -1.2617}, 'country': 'GB', 'population': 63323, 'timezone': 3600, 'sunrise': 1783915101, 'sunset': 1783974167}}
+
+#check if it will rain in the next 12 hours
+condition_codes = []
+
+for i in range(0,4):
+    id = weather_data['list'][0]['weather'][0]['id']
+    condition_codes.append(id)
+
+print(condition_codes)
+
+for code in condition_codes:
+    if code < 700:
+        WillRain = True
+
+if WillRain:
+    message = 'Bring an Umbrella today because it will rain'
+else:
+    message = 'No rain forecasted today'
+
+#use smtplib to send email if it will rain.
+
+import smtplib
+
+from_email = 'rahulsanthana@gmail.com'
+to_email = 'sutharsi.r7@gmail.com'
+password = 'qfxv rumu rbmo kdge'
+
+
+connection = smtplib.SMTP('smtp.gmail.com', 587)
+connection.starttls()
+connection.login(user=from_email, password=password)
+connection.sendmail(from_addr=from_email, to_addrs=to_email, msg=f'Subject:Rain Alert\n\n {message}')
+connection.quit()
+
+#run in terminal:
+# /Users/santhana/PycharmProjects/PythonProject1/.venv/bin/python /Users/santhana/PycharmProjects/Day-35_API-Keys_Auth-Env_Vars/rain_alert/main.py

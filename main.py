@@ -46,7 +46,7 @@ else:
 
 import smtplib
 
-from_email = os.environ.get('MY_EMAIL_SECRET')
+from_email = os.environ.get('MY_EMAIL')
 password = 'qfxv rumu rbmo kdge'
 
 

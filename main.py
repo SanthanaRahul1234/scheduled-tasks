@@ -2,23 +2,18 @@ import requests
 import os
 
 api_key = os.environ.get('OWM_API_KEY') #using environment variables to hide API Keys
-print(f"DEBUG: My API key is: {os.environ.get('OWM_API_KEY')}")
 OWM_ENDPOINT = "https://api.openweathermap.org/data/2.5/forecast"
 
-location_rugby = { 'loc': 'rugby', 'lat': 52.373199,'lon': -1.261740} #sunny right now
-location_china = { 'loc': 'china','lat': 32.060255,'lon': 118.796877} #cloudy right n0w
-location_ukraine = {'loc': 'ukraine','lat':51.4982,'lon':31.28935} #rainy right now
+location_rugby = { 'loc': 'rugby', 'lat': 52.373199,'lon': -1.261740} 
 
 parameters = {
     'lat': 32.060255,
     'lon': 118.796877,
     'cnt': 4,
     'appid':api_key,
-
 }
 
 WillRain = False
-
 message = ''
 
 #make request to api using requesst module, 5 day weather forecast
@@ -51,8 +46,7 @@ else:
 
 import smtplib
 
-from_email = 'rahulsanthana@gmail.com'
-to_email = 'sutharsi.r7@gmail.com'
+from_email = os.environ.get('MY_EMAIL_SECRET')
 password = 'qfxv rumu rbmo kdge'
 
 

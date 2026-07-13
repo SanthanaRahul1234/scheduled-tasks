@@ -47,7 +47,7 @@ else:
 import smtplib
 
 from_email = os.environ.get('MY_EMAIL')
-password = 'qfxv rumu rbmo kdge'
+password = os.environ.get('MY_PASSWORD')
 
 
 connection = smtplib.SMTP('smtp.gmail.com', 587)
@@ -55,6 +55,3 @@ connection.starttls()
 connection.login(user=from_email, password=password)
 connection.sendmail(from_addr=from_email, to_addrs=to_email, msg=f'Subject:Rain Alert\n\n {message}')
 connection.quit()
-
-#run in terminal:
-# /Users/santhana/PycharmProjects/PythonProject1/.venv/bin/python /Users/santhana/PycharmProjects/Day-35_API-Keys_Auth-Env_Vars/rain_alert/main.py
